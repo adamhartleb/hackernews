@@ -1,67 +1,52 @@
-import React, {
-  Component
-} from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Component} from 'react';
+import Search from './components/search';
+import Table from './components/table';
 
-const list = [{
-    title: 'React',
-    url: 'https://facebook.github.io/react/',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  },
-  {
-    title: 'Redux',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  },
-  {
-    title: 'Meow',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 2,
-  },
-  {
-    title: 'Zoo',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 3,
-  },
-];
-
+const DEFAULT_QUERY = 'elixir';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      list,
-      searchTerm: ''
+      result: null,
+      searchTerm: DEFAULT_QUERY
     }
-    this.onDismiss = this.onDismiss.bind(this);
-    this.onSearch = this.onSearch.bind(this);
-    this.filterSearched = this.filterSearched.bind(this);
+
+    this.onDismiss = this
+      .onDismiss
+      .bind(this);
+    this.onSearch = this
+      .onSearch
+      .bind(this);
+    this.filterSearched = this
+      .filterSearched
+      .bind(this);
+    this.setSearchTopstories = this
+      .setSearchTopstories
+      .bind(this);
+    this.fetchSearchTopstories = this
+      .fetchSearchTopstories
+      .bind(this);
+
   }
 
   onDismiss(id) {
     this.setState({
-      list: this.state.list.filter((item) => {
-        return item.objectID !== id;
-      })
+      result: this
+        .state
+        .result
+        .filter((item) => {
+          return item.objectID !== id;
+        })
     })
   }
 
-  onSearch(term) {
-    this.setState({searchTerm: term})
+  onSearch(event) {
+    this.setState({searchTerm: event.target.value})
   }
 
   filterSearched(item) {
@@ -70,26 +55,39 @@ class App extends Component {
     }
   }
 
+  setSearchTopstories(result) {
+    this.setState({result});
+  }
+
+  fetchSearchTopstories(e) {
+    const searchTerm = e.target.value;
+    if (e.keyCode == 13) {
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopstories(result));
+      this.setState({searchTerm})
+    }
+  }
+
+  componentDidMount() {
+    const {searchTerm} = this.state;
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopstories(result));
+  }
+
   render() {
+    const { searchTerm, result } = this.state;
+    if (!result) return null;
     return (
-      <div>
-        <form>
-          <input onChange={(e) => this.onSearch(e.target.value)} />
-        </form>
-        {this.state.list.filter(item => this.filterSearched(item)).map((item) => {
-          return (
-            <div key={item.objectID}>
-              <ol>
-                <li>{item.title}</li>
-                <li>{item.url}</li>
-                <li>{item.author}</li>
-                <li>{item.num_comments}</li>
-                <li>{item.points}</li>
-              </ol>
-              <button onClick={() => this.onDismiss(item.objectID)}>Remove</button>    
-            </div>
-          )
-        })}
+      <div className="page">
+        <div className="interactions">
+          <Search value={searchTerm} onSearch={this.onSearch} newSearch={this.fetchSearchTopstories} />
+        </div>
+        <Table
+          list={result.hits}
+          onDismiss={this.onDismiss}
+          filterSearched={this.filterSearched}/>
       </div>
     );
   }
