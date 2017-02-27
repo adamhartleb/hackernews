@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import Search from './components/search';
 import Table from './components/table';
 
-const DEFAULT_QUERY = 'elixir';
+const DEFAULT_QUERY = 'javascript';
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
@@ -16,32 +16,19 @@ class App extends Component {
       searchTerm: DEFAULT_QUERY
     }
 
-    this.onDismiss = this
-      .onDismiss
-      .bind(this);
-    this.onSearch = this
-      .onSearch
-      .bind(this);
-    this.filterSearched = this
-      .filterSearched
-      .bind(this);
-    this.setSearchTopstories = this
-      .setSearchTopstories
-      .bind(this);
-    this.fetchSearchTopstories = this
-      .fetchSearchTopstories
-      .bind(this);
+    this.onDismiss = this.onDismiss.bind(this);
+    this.onSearch = this.onSearch.bind(this);
+    this.filterSearched = this.filterSearched.bind(this);
+    this.setSearchTopstories = this.setSearchTopstories.bind(this);
+    this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);
 
   }
 
   onDismiss(id) {
     this.setState({
-      result: this
-        .state
-        .result
-        .filter((item) => {
-          return item.objectID !== id;
-        })
+      result:  { 
+          hits: this.state.result.hits.filter(item => item.objectID !== id) 
+      }
     })
   }
 
@@ -82,12 +69,17 @@ class App extends Component {
     return (
       <div className="page">
         <div className="interactions">
-          <Search value={searchTerm} onSearch={this.onSearch} newSearch={this.fetchSearchTopstories} />
+          <Search 
+            value={searchTerm} 
+            onSearch={this.onSearch} 
+            newSearch={this.fetchSearchTopstories} 
+          />
         </div>
         <Table
           list={result.hits}
           onDismiss={this.onDismiss}
-          filterSearched={this.filterSearched}/>
+          filterSearched={this.filterSearched}
+        />
       </div>
     );
   }
