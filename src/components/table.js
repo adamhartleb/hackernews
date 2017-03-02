@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from './button';
 
+
 function Table({onDismiss, filterSearched, list}) {
   return (
     <div className="table">
